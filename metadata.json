@@ -1,0 +1,5 @@
+{
+  "name": "Moodify - AI Music Recommendations",
+  "description": "An interactive music application that leverages AI to generate personalized playlists based on your mood. Features a sleek, modern interface with light and dark modes.",
+  "requestFramePermissions": []
+}
