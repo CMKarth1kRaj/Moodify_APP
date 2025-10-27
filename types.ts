@@ -1,5 +1,5 @@
 export interface Song {
-    id: number;
+    id: string;
     title: string;
     artist: string;
     album: string;
@@ -96,7 +96,7 @@ export interface AppContextType {
     getMoodPlaylist: (mood: Mood) => Promise<void>;
     toggleSongLike: (song: Song) => void;
     createPlaylist: (name: string, description: string) => void;
-    addSongToPlaylist: (songId: number, playlistId: number | string) => void;
+    addSongToPlaylist: (songId: string, playlistId: number | string) => void;
     setThemePreference: (theme: ThemePreference) => void;
     setSearchTerm: (term: string) => void;
     setIsPlayerExpanded: (isExpanded: boolean) => void;
@@ -111,7 +111,7 @@ export interface AppContextType {
     setAdminPage: (page: AdminPage) => void;
     addSong: (song: Omit<Song, 'id'>) => void;
     updateSong: (song: Song) => void;
-    deleteSong: (songId: number) => void;
+    deleteSong: (songId: string) => void;
 
     // Computed
     isAdmin: boolean;

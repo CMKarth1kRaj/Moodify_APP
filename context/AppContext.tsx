@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import type { AppContextType, Song, Playlist, Mood, Page, ThemePreference, JamSession, AuthState, User, AdminPage } from '../types';
 import { generateMoodPlaylist } from '../services/geminiService';
-import { searchSongs } from '../services/deezerService';
-import { mockSongs } from '../data/mockData';
+import { searchSongs } from '../services/spotifyService';
 
 const likedSongsPlaylist: Playlist = {
     id: 'liked-songs',
@@ -36,7 +35,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const [songs, setSongs] = useState<Song[]>(mockSongs);
+    const [songs, setSongs] = useState<Song[]>([]);
 
     const audioRef = useRef<HTMLAudioElement>(null);
     const originalPlaylistOrder = useRef<Song[]>([]);
@@ -232,7 +231,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const { playlistName, description, songSuggestions } = await generateMoodPlaylist(mood);
             const songPromises = songSuggestions.map(suggestion => searchSongs(suggestion.title).then(results => results[0]));
             let songs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
-            const uniqueSongsMap = new Map<number, Song>();
+            const uniqueSongsMap = new Map<string, Song>();
             songs.forEach(song => uniqueSongsMap.set(song.id, song));
             songs = Array.from(uniqueSongsMap.values());
 
@@ -275,7 +274,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setCurrentPage('playlist');
     };
 
-    const addSongToPlaylist = (songId: number, playlistId: number | string) => {
+    const addSongToPlaylist = (songId: string, playlistId: number | string) => {
         let songToAdd: Song | undefined;
         for (const playlist of [...userPlaylists, currentPlaylist].filter(Boolean) as Playlist[]) {
             songToAdd = playlist.songs.find(s => s.id === songId);
@@ -328,13 +327,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // --- ADMIN ---
     const addSong = (song: Omit<Song, 'id'>) => {
-        const newSong: Song = { ...song, id: Date.now() };
+        const newSong: Song = { ...song, id: Date.now().toString() };
         setSongs(prev => [newSong, ...prev]);
     };
     const updateSong = (updatedSong: Song) => {
         setSongs(prev => prev.map(s => s.id === updatedSong.id ? updatedSong : s));
     };
-    const deleteSong = (songId: number) => {
+    const deleteSong = (songId: string) => {
         setSongs(prev => prev.filter(s => s.id !== songId));
     };
 

@@ -1,9 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { Mood } from '../types';
 
-// IMPORTANT: This key is managed externally and is assumed to be available in the environment.
-// Do not add any UI or logic to handle entering this key.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_API_KEY!});
 
 const generatePlaylistPrompt = (mood: Mood): string => {
     return `You are a creative music curator with deep knowledge of popular music.
@@ -15,7 +13,7 @@ Your task is to:
 
 Return ONLY a single, raw JSON object (no markdown formatting) with the keys "playlistName", "description", and "songSuggestions". The "songSuggestions" value must be an array of strings.
 Example:
-{"playlistName": "Sunset Drive", "description": "Cruising with the windows down as the sky turns orange.", "songSuggestions": ["The Weeknd - Blinding Lights", "Daft Punk - Get Lucky", "Glass Animals - Heat Waves", "Lana Del Rey - Summertime Sadness"]}`;
+{"playlistName": "Sunset Drive", "description": "Cruising with the windows down as the sky turns orange.", "songSuggestions": ["The Weeknd - Blinding Lights", "Daft Punk - Get Lucky", "Glass Animals - Heat Waves", "Lana Del Rey - Summertime Sadness"]}`.trim();
 };
 
 interface GeminiPlaylistResponse {
@@ -26,27 +24,26 @@ interface GeminiPlaylistResponse {
 
 export const generateMoodPlaylist = async (mood: Mood): Promise<{ playlistName: string; description: string; songSuggestions: { title: string; artist: string; }[] }> => {
     try {
-        // By removing the JSON response schema, we make a simpler API call that is less likely
-        // to be blocked by CORS or network issues that can cause XHR errors.
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: "gemini-pro",
             contents: generatePlaylistPrompt(mood),
         });
 
         let jsonText = response.text.trim();
-        
-        // Gemini can sometimes wrap the JSON in markdown code fences. We need to strip them.
-        if (jsonText.startsWith('```json')) {
+
+        if (jsonText.startsWith("```json")) {
             jsonText = jsonText.substring(7, jsonText.length - 3).trim();
-        } else if (jsonText.startsWith('```')) {
+        } else if (jsonText.startsWith("```")) {
             jsonText = jsonText.substring(3, jsonText.length - 3).trim();
         }
-        
+
         const parsed: GeminiPlaylistResponse = JSON.parse(jsonText);
-        
+
         if (parsed && Array.isArray(parsed.songSuggestions)) {
-             // The Deezer service will treat these as general search queries.
-            const suggestions = parsed.songSuggestions.map(term => ({ title: term, artist: '' }));
+            const suggestions = parsed.songSuggestions.map(term => {
+                const [artist, title] = term.split(' - ');
+                return { title, artist };
+            });
             return {
                 playlistName: parsed.playlistName,
                 description: parsed.description,
