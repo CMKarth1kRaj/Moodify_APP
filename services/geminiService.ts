@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { Mood } from '../types';
 
-const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_API_KEY!});
+const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY!});
 
 const generatePlaylistPrompt = (mood: Mood): string => {
     return `You are a creative music curator with deep knowledge of popular music.
@@ -25,7 +25,7 @@ interface GeminiPlaylistResponse {
 export const generateMoodPlaylist = async (mood: Mood): Promise<{ playlistName: string; description: string; songSuggestions: { title: string; artist: string; }[] }> => {
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-pro",
+            model: "gemini-1.5-flash",
             contents: generatePlaylistPrompt(mood),
         });
 

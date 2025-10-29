@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import type { AppContextType, Song, Playlist, Mood, Page, ThemePreference, JamSession, AuthState, User, AdminPage } from '../types';
 import { generateMoodPlaylist } from '../services/geminiService';
-import { searchSongs } from '../services/spotifyService';
+import { searchSongs } from '../services/youtubeMusicService';
 
 const likedSongsPlaylist: Playlist = {
     id: 'liked-songs',
@@ -266,7 +266,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const createPlaylist = (name: string, description: string) => {
         const newPlaylist: Playlist = {
-            id: `custom-${Date.now()}`, name, description, songs: [],
+            id: `custom-${Date.now()}`,
+            name,
+            description,
+            songs: [],
             coverArt: `https://source.unsplash.com/400x400/?${name.replace(/\s/g, '')},music`,
         };
         setUserPlaylists(prev => [newPlaylist, ...prev]);
@@ -299,8 +302,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const songPromises = songSuggestions.map(suggestion => searchSongs(suggestion.title).then(results => results[0]));
             const songs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
 
-            const jamPlaylist: Playlist = { id: `jam-${Date.now()}`, name: playlistName, description, songs, coverArt: songs.length > 0 ? songs[0].coverArt : `https://source.unsplash.com/400x400/?${mood},music` };
-            const newJamSession: JamSession = { id: `jam-session-${Date.now()}`, name, participantLimit: limit, participants: [user], isPublic, mood, playlist: jamPlaylist, createdBy: user };
+            const jamPlaylist: Playlist = {
+                id: `jam-${Date.now()}`,
+                name: playlistName,
+                description,
+                songs,
+                coverArt: songs.length > 0 ? songs[0].coverArt : `https://source.unsplash.com/400x400/?${mood},music`
+            };
+            const newJamSession: JamSession = {
+                id: `jam-session-${Date.now()}`,
+                name,
+                participantLimit: limit,
+                participants: [user],
+                isPublic,
+                mood,
+                playlist: jamPlaylist,
+                createdBy: user
+            };
 
             setJamSessions(prev => [newJamSession, ...prev]);
             setCurrentPlaylist(jamPlaylist);

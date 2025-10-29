@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import SongList from '../components/SongList';
 import { Song, Playlist } from '../types';
-import { searchSongs } from '../services/spotifyService';
+import { searchSongs } from '../services/youtubeMusicService';
 import Spinner from '../components/Spinner';
 
 const Search: React.FC = () => {
